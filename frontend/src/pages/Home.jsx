@@ -237,9 +237,9 @@ const Home = () => {
             gap: 48,
             alignItems: 'center',
           }}
-          className="animate-fade-up"
+          className="animate-fade-up ai-promo-box"
         >
-          <div>
+          <div className="ai-promo-content" style={{ display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
               <div style={{ width: 40, height: 40, background: 'linear-gradient(135deg, var(--gold), var(--gold-dark))', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
                 <Sparkles size={18} />

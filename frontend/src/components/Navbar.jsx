@@ -54,17 +54,17 @@ const Navbar = () => {
         
         {/* Center: nav links */}
         <div className={`nav-links ${mobileOpen ? 'mobile-open' : ''}`}>
-          <a href="/#main-content">Home</a>
-          <a href="/#collections">Shop</a>
-          <a href="/#arrivals">New Arrivals</a>
-          <a href="/#story">Story</a>
-          <a href="/#reviews">Reviews</a>
+          <a href="/#main-content" onClick={() => setMobileOpen(false)}>Home</a>
+          <a href="/#collections" onClick={() => setMobileOpen(false)}>Shop</a>
+          <a href="/#arrivals" onClick={() => setMobileOpen(false)}>New Arrivals</a>
+          <a href="/#story" onClick={() => setMobileOpen(false)}>Story</a>
+          <a href="/#reviews" onClick={() => setMobileOpen(false)}>Reviews</a>
           {user?.role === 'admin' ? (
-            <Link to="/dashboard" className="sell-btn">Seller Dashboard</Link>
+            <Link to="/dashboard" className="sell-btn" onClick={() => setMobileOpen(false)}>Seller Dashboard</Link>
           ) : user ? (
-            <Link to="/account" className="sell-btn">My Account</Link>
+            <Link to="/account" className="sell-btn" onClick={() => setMobileOpen(false)}>My Account</Link>
           ) : (
-            <Link to="/login" className="sell-btn">Sign In</Link>
+            <Link to="/login" className="sell-btn" onClick={() => setMobileOpen(false)}>Sign In</Link>
           )}
         </div>
 
