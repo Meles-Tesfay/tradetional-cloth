@@ -97,6 +97,34 @@ export const ShopProvider = ({ children }) => {
     });
   };
 
+  const placeOrder = async (customerInfo) => {
+    try {
+      const orderData = {
+        ...customerInfo,
+        items: cart,
+        amount: cartTotal,
+      };
+
+      const res = await fetch(`${API_BASE}/api/orders`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(orderData),
+      });
+
+      if (!res.ok) throw new Error("Failed to place order");
+
+      const newOrder = await res.json();
+      setCart([]); // Clear cart
+      return newOrder;
+    } catch (err) {
+      console.error(err);
+      showToast("Error placing order");
+      throw err;
+    }
+  };
+
   const cartTotal = cart.reduce(
     (sum, item) => sum + item.price * item.quantity,
     0,
@@ -117,6 +145,7 @@ export const ShopProvider = ({ children }) => {
         cartCount,
         wishlist,
         toggleWishlist,
+        placeOrder,
         cartOpen,
         setCartOpen,
         toast,

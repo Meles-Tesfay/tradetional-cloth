@@ -11,6 +11,8 @@ import Dashboard from './pages/Dashboard';
 import ProductDetails from './pages/ProductDetails';
 import Login from './pages/Login';
 import CustomerDashboard from './pages/CustomerDashboard';
+import Checkout from './pages/Checkout';
+import OrderConfirmation from './pages/OrderConfirmation';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Wrapper to conditionally render Footer
@@ -27,6 +29,8 @@ const Layout = () => {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/product/:id" element={<ProductDetails />} />
+        <Route path="/checkout" element={<Checkout />} />
+        <Route path="/order-confirmation" element={<OrderConfirmation />} />
         
         {/* Protected Routes */}
         <Route 

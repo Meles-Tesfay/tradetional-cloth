@@ -76,11 +76,11 @@ const KpiCard = ({ label, value, change, positive, iconEl, gold }) => (
   </div>
 );
 
-const NAV = [
+const getNavItems = (pendingCount) => [
   { key: "overview", label: "Overview", icon: LayoutDashboard },
   { key: "analytics", label: "Analytics", icon: TrendingUp },
   { key: "inventory", label: "Inventory", icon: Package, badge: 24 },
-  { key: "orders", label: "All Orders", icon: ShoppingBag, badge: 7 },
+  { key: "orders", label: "All Orders", icon: ShoppingBag, badge: pendingCount > 0 ? pendingCount : null },
   { key: "tracking", label: "Shipment Tracking", icon: Truck },
   { key: "tailoring", label: "Custom Tailoring", icon: Edit2 },
   { key: "customers", label: "Customers", icon: Users },
@@ -658,7 +658,33 @@ const DeleteConfirm = ({ product, onClose, onDeleted }) => {
    MAIN DASHBOARD
 ──────────────────────────────────────────────── */
 const Dashboard = () => {
-  const { products: ctxProducts, refreshProducts } = useShop();
+  const { products: ctxProducts, refreshProducts, showToast } = useShop();
+
+  const [orders, setOrders] = useState([]);
+  const [loadingOrders, setLoadingOrders] = useState(true);
+
+  const fetchOrders = useCallback(async () => {
+    try {
+      const res = await fetch(`${API}/api/orders`);
+      if (res.ok) {
+        const data = await res.json();
+        setOrders(data);
+      }
+    } catch (err) {
+      console.error("Failed to fetch orders:", err);
+    } finally {
+      setLoadingOrders(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchOrders();
+    const interval = setInterval(fetchOrders, 30000); // Poll every 30s
+    return () => clearInterval(interval);
+  }, [fetchOrders]);
+
+  const pendingOrdersCount = orders.filter(o => o.status === "pending").length;
+  const NAV = getNavItems(pendingOrdersCount);
 
   const [page, setPage] = useState("overview");
   const [searchOrder, setSearchOrder] = useState("");
@@ -713,11 +739,10 @@ const Dashboard = () => {
     );
   };
 
-  const filteredOrders = ORDERS.filter(
+  const filteredOrders = orders.filter(
     (o) =>
-      o.id.toLowerCase().includes(searchOrder.toLowerCase()) ||
-      o.product.toLowerCase().includes(searchOrder.toLowerCase()) ||
-      o.customer.toLowerCase().includes(searchOrder.toLowerCase()),
+      o.customerName?.toLowerCase().includes(searchOrder.toLowerCase()) ||
+      o.orderId?.toLowerCase().includes(searchOrder.toLowerCase())
   );
 
   const filteredInv = inventory.filter((p) => {
@@ -1224,33 +1249,36 @@ const Dashboard = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {ORDERS.slice(0, 5).map((o) => (
-                    <tr key={o.id}>
+                  {orders.slice(0, 5).map((o) => (
+                    <tr key={o.orderId || o._id}>
                       <td>
-                        <span className="order-id">{o.id}</span>
+                        <span className="order-id">{o.orderId}</span>
                       </td>
                       <td>
                         <div className="product-cell">
-                          <img
-                            src={getImageUrl(o.image)}
-                            alt=""
-                            className="product-cell-thumb"
-                          />
+                          {o.items && o.items[0] && (
+                            <img
+                              src={getImageUrl(o.items[0].image)}
+                              alt=""
+                              className="product-cell-thumb"
+                              onError={(e) => { e.target.style.display = "none"; }}
+                            />
+                          )}
                           <div>
-                            <div className="product-cell-name">{o.product}</div>
-                            <div className="product-cell-sub">{o.sub}</div>
+                            <div className="product-cell-name">{o.customerName}</div>
+                            <div className="product-cell-sub">{o.items?.length || 1} item{o.items?.length !== 1 ? 's' : ''}</div>
                           </div>
                         </div>
                       </td>
-                      <td style={{ fontSize: 13.5 }}>{o.customer}</td>
+                      <td style={{ fontSize: 13.5 }}>{o.customerEmail}</td>
                       <td>
                         <StatusBadge status={o.status} />
                       </td>
                       <td style={{ fontSize: 12.5, color: "var(--muted)" }}>
-                        {o.date}
+                        {new Date(o.createdAt).toLocaleDateString()}
                       </td>
                       <td>
-                        <span className="amount-cell">${o.amount}</span>
+                        <span className="amount-cell">${o.amount?.toFixed(2) || o.amount}</span>
                       </td>
                       <td>
                         <button
@@ -1309,33 +1337,69 @@ const Dashboard = () => {
                 </thead>
                 <tbody>
                   {filteredOrders.map((o) => (
-                    <tr key={o.id}>
+                    <tr key={o.orderId || o._id}>
                       <td>
-                        <span className="order-id">{o.id}</span>
+                        <span className="order-id">{o.orderId}</span>
                       </td>
                       <td>
                         <div className="product-cell">
-                          <img
-                            src={getImageUrl(o.image)}
-                            alt=""
-                            className="product-cell-thumb"
-                          />
+                          {o.items && o.items[0] && (
+                            <img
+                              src={getImageUrl(o.items[0].image)}
+                              alt=""
+                              className="product-cell-thumb"
+                              onError={(e) => { e.target.style.display = "none"; }}
+                            />
+                          )}
                           <div>
-                            <div className="product-cell-name">{o.product}</div>
-                            <div className="product-cell-sub">{o.sub}</div>
+                            <div className="product-cell-name">{o.customerName}</div>
+                            <div className="product-cell-sub">{o.items?.length || 1} item{o.items?.length !== 1 ? 's' : ''}</div>
                           </div>
                         </div>
                       </td>
-                      <td style={{ fontSize: 13.5 }}>{o.customer}</td>
-                      <td style={{ fontSize: 13 }}>{o.country}</td>
+                      <td style={{ fontSize: 13.5 }}>{o.customerEmail}</td>
+                      <td style={{ fontSize: 13 }}>{o.phone}</td>
                       <td>
-                        <StatusBadge status={o.status} />
+                        <select
+                          className="pf-select"
+                          style={{
+                            padding: "2px 8px",
+                            fontSize: 12,
+                            height: "auto",
+                            borderRadius: "var(--radius-sm)",
+                          }}
+                          value={o.status}
+                          onChange={async (e) => {
+                            const newStatus = e.target.value;
+                            try {
+                              const res = await fetch(`${API}/api/orders/${o._id}/status`, {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ status: newStatus })
+                              });
+                              if (res.ok) {
+                                showToast("Order status updated");
+                                setOrders(prev => prev.map(order => 
+                                  order._id === o._id ? { ...order, status: newStatus } : order
+                                ));
+                              }
+                            } catch (err) {
+                              console.error(err);
+                              showToast("Failed to update status");
+                            }
+                          }}
+                        >
+                          <option value="pending">Pending</option>
+                          <option value="processing">Processing</option>
+                          <option value="shipped">Shipped</option>
+                          <option value="delivered">Delivered</option>
+                        </select>
                       </td>
                       <td style={{ fontSize: 12.5, color: "var(--muted)" }}>
-                        {o.date}
+                        {new Date(o.createdAt).toLocaleDateString()}
                       </td>
                       <td>
-                        <span className="amount-cell">${o.amount}</span>
+                        <span className="amount-cell">${o.amount?.toFixed(2) || o.amount}</span>
                       </td>
                       <td>
                         <div style={{ display: "flex", gap: 4 }}>

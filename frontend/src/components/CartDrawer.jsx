@@ -1,11 +1,12 @@
 import React from 'react';
 import { useShop } from '../context/ShopContext';
 import { X, Plus, Minus, ShoppingBag, Trash2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { getImageUrl } from '../utils/helpers';
 
 const CartDrawer = () => {
   const { cart, cartOpen, setCartOpen, cartTotal, removeFromCart, updateQuantity } = useShop();
+  const navigate = useNavigate();
 
   return (
     <>
@@ -75,7 +76,13 @@ const CartDrawer = () => {
             <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 12 }}>
               Shipping & taxes calculated at checkout
             </p>
-            <button className="btn-primary checkout-btn">
+            <button 
+              className="btn-primary checkout-btn"
+              onClick={() => {
+                setCartOpen(false);
+                navigate('/checkout');
+              }}
+            >
               Proceed to Checkout
             </button>
           </div>

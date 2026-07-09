@@ -160,6 +160,32 @@ app.get("/api/orders", async (req, res) => {
   }
 });
 
+// POST new order
+app.post("/api/orders", async (req, res) => {
+  try {
+    const { customerName, customerEmail, phone, address, items, amount } = req.body;
+    
+    // Generate a unique order ID
+    const orderId = "HH-" + Math.floor(1000 + Math.random() * 9000);
+
+    const order = new Order({
+      orderId,
+      customerName,
+      customerEmail,
+      phone,
+      address,
+      items,
+      amount,
+      status: "pending"
+    });
+
+    const newOrder = await order.save();
+    res.status(201).json(newOrder);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
 // PUT update order status
 app.put("/api/orders/:id/status", async (req, res) => {
   try {
