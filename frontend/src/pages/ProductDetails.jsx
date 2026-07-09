@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { useShop } from '../context/ShopContext';
 import { ChevronRight, Star, Heart, ShoppingBag, Truck, Shield, RotateCcw, CheckCircle, Info } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
+import { getImageUrl } from '../utils/helpers';
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -154,7 +155,7 @@ const ProductDetails = () => {
                 className={`pd-thumb ${selectedImage === i ? 'active' : ''}`}
                 onClick={() => setSelectedImage(i)}
               >
-                <img src={img} alt={`Thumbnail ${i+1}`} />
+                <img src={getImageUrl(img)} alt={`Thumbnail ${i+1}`} />
               </button>
             ))}
           </div>
@@ -165,7 +166,7 @@ const ProductDetails = () => {
             onMouseMove={handleMouseMove}
           >
             <img 
-              src={images[selectedImage]} 
+              src={getImageUrl(images[selectedImage])} 
               alt={product.name} 
               className={`pd-main-img ${isZoomed ? 'zoomed' : ''}`} 
               style={isZoomed ? { transformOrigin: `${mousePos.x}% ${mousePos.y}%` } : {}}

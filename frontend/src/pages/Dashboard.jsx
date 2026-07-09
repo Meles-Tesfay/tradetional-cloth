@@ -41,6 +41,7 @@ import {
 import { ORDERS, REVENUE_DATA, AI_RESPONSES } from "../data";
 import { Link } from "react-router-dom";
 import { useShop } from "../context/ShopContext";
+import { getImageUrl } from "../utils/helpers";
 
 /* ── helpers ── */
 const API = import.meta.env.VITE_API_URL || "";
@@ -224,7 +225,7 @@ const ProductFormModal = ({ product, onClose, onSaved }) => {
     const data = new FormData();
     data.append("image", file);
     try {
-      const res = await fetch(`${API}/upload`, { method: "POST", body: data });
+      const res = await fetch(`${API}/api/upload`, { method: "POST", body: data });
       if (!res.ok) throw new Error("Upload failed");
       const json = await res.json();
       set("image", json.url);
@@ -376,7 +377,7 @@ const ProductFormModal = ({ product, onClose, onSaved }) => {
           {/* Preview */}
           {form.image && (
             <div className="pf-img-preview">
-              <img src={form.image} alt="Preview" />
+              <img src={getImageUrl(form.image)} alt="Preview" />
               <button
                 type="button"
                 className="pf-img-clear"
@@ -1231,7 +1232,7 @@ const Dashboard = () => {
                       <td>
                         <div className="product-cell">
                           <img
-                            src={o.image}
+                            src={getImageUrl(o.image)}
                             alt=""
                             className="product-cell-thumb"
                           />
@@ -1315,7 +1316,7 @@ const Dashboard = () => {
                       <td>
                         <div className="product-cell">
                           <img
-                            src={o.image}
+                            src={getImageUrl(o.image)}
                             alt=""
                             className="product-cell-thumb"
                           />
@@ -1476,7 +1477,7 @@ const Dashboard = () => {
                   <div key={pid} className="inv-card">
                     <div className="inv-img-wrap">
                       <img
-                        src={p.image || "/assets/hero_model.png"}
+                        src={getImageUrl(p.image || "/assets/hero_model.png")}
                         alt={p.name}
                         loading="lazy"
                         onError={(e) => {

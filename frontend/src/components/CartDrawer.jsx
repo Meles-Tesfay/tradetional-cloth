@@ -2,6 +2,7 @@ import React from 'react';
 import { useShop } from '../context/ShopContext';
 import { X, Plus, Minus, ShoppingBag, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { getImageUrl } from '../utils/helpers';
 
 const CartDrawer = () => {
   const { cart, cartOpen, setCartOpen, cartTotal, removeFromCart, updateQuantity } = useShop();
@@ -36,7 +37,7 @@ const CartDrawer = () => {
             cart.map(item => (
               <div key={item.id} className="cart-item">
                 <img
-                  src={item.image}
+                  src={getImageUrl(item.image)}
                   alt={item.name}
                   className="cart-item-img"
                   onError={e => { e.target.style.background = 'var(--cream-2)'; }}

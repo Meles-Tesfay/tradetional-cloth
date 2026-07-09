@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useShop } from '../context/ShopContext';
 import { X, Heart, ShoppingBag, Star, Package, Truck, RotateCcw } from 'lucide-react';
+import { getImageUrl } from '../utils/helpers';
 
 const QuickView = ({ product, onClose }) => {
   const { addToCart, wishlist, toggleWishlist } = useShop();
@@ -40,7 +41,7 @@ const QuickView = ({ product, onClose }) => {
       <div className="quick-view-content">
         {/* Image side */}
         <div className="qv-img-side">
-          <img src={product.image} alt={product.name} />
+          <img src={getImageUrl(product.image)} alt={product.name} />
           <button className="qv-close-btn" onClick={onClose} aria-label="Close">
             <X size={18} />
           </button>

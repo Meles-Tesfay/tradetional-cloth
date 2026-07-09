@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useShop } from '../context/ShopContext';
 import { Heart, ShoppingBag, Eye, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { getImageUrl } from '../utils/helpers';
 
 const BADGE_LABELS = {
   bestseller: 'Bestseller',
@@ -23,7 +24,7 @@ const ProductCard = ({ product, onQuickView }) => {
     <div className="product-card">
       <Link to={`/product/${product.id || product._id}`} className="product-img-wrap" style={{ display: 'block' }}>
         <img
-          src={product.image}
+          src={getImageUrl(product.image)}
           alt={product.name}
           loading="lazy"
           onError={e => { e.target.style.opacity = 0; }}
