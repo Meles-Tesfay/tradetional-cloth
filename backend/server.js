@@ -5,6 +5,8 @@ const cors = require("cors");
 const path = require("path");
 const multer = require("multer");
 const fs = require("fs");
+const { v2: cloudinary } = require("cloudinary");
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
 
 const Product = require("./models/Product");
 const Order = require("./models/Order");
@@ -27,14 +29,32 @@ if (!fs.existsSync(uploadsDir)) {
 // Serve uploaded images as static files
 app.use("/uploads", express.static(uploadsDir));
 
-// Multer config — store files in /uploads with original extension
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadsDir),
-  filename: (req, file, cb) => {
-    const unique = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, unique + path.extname(file.originalname));
-  },
-});
+// Multer config — dynamically use Cloudinary if credentials exist, else fallback to local
+let storage;
+if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  });
+
+  storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+      folder: "habesha_heritage", // Folder name in Cloudinary
+      allowed_formats: ["jpg", "png", "jpeg", "webp"],
+    },
+  });
+} else {
+  // Fallback to local storage
+  storage = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, uploadsDir),
+    filename: (req, file, cb) => {
+      const unique = Date.now() + "-" + Math.round(Math.random() * 1e9);
+      cb(null, unique + path.extname(file.originalname));
+    },
+  });
+}
 const upload = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB
@@ -60,7 +80,9 @@ mongoose
 // POST /api/upload — upload an image file, returns URL
 app.post("/api/upload", upload.single("image"), (req, res) => {
   if (!req.file) return res.status(400).json({ message: "No file uploaded" });
-  const url = `/uploads/${req.file.filename}`;
+  
+  // Cloudinary stores URL in req.file.path, local stores in req.file.filename
+  const url = req.file.path || `/uploads/${req.file.filename}`;
   res.json({ url });
 });
 
